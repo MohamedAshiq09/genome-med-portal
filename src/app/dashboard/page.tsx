@@ -1,64 +1,86 @@
 // src/app/dashboard/page.tsx
 import { redirect } from 'next/navigation';
-import { currentUser } from '@clerk/nextjs';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import LogoutButton from '@/components/ui/logout-button';
 
 export default async function DashboardPage() {
-  const user = await currentUser();
+  const { userId } = await auth();
   
-  if (!user) {
+  if (!userId) {
     redirect('/login');
   }
   
+  // Get the full user object with proper typing
+  const user = await currentUser();
+  if (!user) {
+    redirect('/login');
+  }
+
   const supabase = createSupabaseClient();
   const { data: profile } = await supabase
     .from('user_profiles')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .single();
-  
+
   // If user hasn't completed onboarding, redirect them
   if (!profile) {
-    redirect('/onboarding');
+    // You should redirect to onboarding or show onboarding UI
+    return (
+      <div>
+        Welcome, {user.firstName || user.emailAddresses?.[0]?.emailAddress}
+        {/* Add onboarding UI here */}
+      </div>
+    );
   }
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">GenomeMed Portal</h1>
-          <div className="flex items-center space-x-4">
-            <span>Welcome, {user.firstName || user.emailAddresses[0].emailAddress}</span>
-            <LogoutButton />
-          </div>
+        <div className="max-w-7xl mx-auto py-6 px-4">
+          <h1 className="text-3xl font-bold text-gray-900">
+            GenomeMed Portal
+          </h1>
+          <div>Welcome, {user.firstName || user.emailAddresses[0].emailAddress}</div>
+          <LogoutButton />
         </div>
       </header>
       
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Your Profile</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-gray-500">Role</p>
-              <p className="font-medium">{profile.role}</p>
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          <h2 className="text-xl font-semibold mb-4">
+            Your Profile
+          </h2>
+          <div className="space-y-4">
+            <div className="flex">
+              <span className="font-medium w-32">
+                Role
+              </span>
+              <span>{profile.role}</span>
             </div>
             {profile.specialization && (
-              <div>
-                <p className="text-sm text-gray-500">Specialization</p>
-                <p className="font-medium">{profile.specialization}</p>
+              <div className="flex">
+                <span className="font-medium w-32">
+                  Specialization
+                </span>
+                <span>{profile.specialization}</span>
               </div>
             )}
             {profile.institution && (
-              <div>
-                <p className="text-sm text-gray-500">Institution</p>
-                <p className="font-medium">{profile.institution}</p>
+              <div className="flex">
+                <span className="font-medium w-32">
+                  Institution
+                </span>
+                <span>{profile.institution}</span>
               </div>
             )}
             {profile.research_focus && (
-              <div className="col-span-1 md:col-span-2">
-                <p className="text-sm text-gray-500">Research Focus</p>
-                <p className="font-medium">{profile.research_focus}</p>
+              <div className="flex">
+                <span className="font-medium w-32">
+                  Research Focus
+                </span>
+                <span>{profile.research_focus}</span>
               </div>
             )}
           </div>
