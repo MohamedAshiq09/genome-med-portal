@@ -151,7 +151,7 @@ export default function HomePage() {
               
               <div className="mt-6">
                 <Button variant="outline" className="bg-white text-indigo-600 hover:bg-indigo-50" asChild>
-                  <Link href="/ai-consultation">Try AI Consultation</Link>
+                  <Link href="dashboard/ai-consultation">Try AI Consultation</Link>
                 </Button>
               </div>
             </div>
