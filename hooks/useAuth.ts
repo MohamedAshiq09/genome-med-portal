@@ -1,7 +1,7 @@
 // src/hooks/useAuth.ts
 import { useEffect, useState } from 'react';
 import { useUser, useAuth as useClerkAuth } from '@clerk/nextjs';
-// import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 
 export function useAuth() {
   const { user, isSignedIn } = useUser();

@@ -1,5 +1,3 @@
-// src/lib/utils/format.ts
-
 // Add this function to parse CSV data to JSON
 export function csvToJson(csv: string) {
     const lines = csv.split('\n');
