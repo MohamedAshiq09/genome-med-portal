@@ -39,7 +39,7 @@ export default function HomePage() {
             </p>
             <div className="flex space-x-4">
               <Button size="lg" variant="default" asChild>
-                <Link href="/register">Get Started</Link>
+                <Link href="/dashboard">Get Started</Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link href="/features">Learn More</Link>

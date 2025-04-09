@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useGeneData } from '@/hooks/useGeneData';
 import { Gene } from '@/models/Gene';
+import Header from '@/components/layout/header';
 
 export default function GeneDetailPage() {
   const params = useParams();

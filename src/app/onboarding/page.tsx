@@ -1,10 +1,9 @@
-// src/app/onboarding/page.tsx
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
-import { createSupabaseClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 
 export default function OnboardingPage() {
   const { user, isLoaded } = useUser();
@@ -28,7 +27,7 @@ export default function OnboardingPage() {
     if (!isLoaded || !user) return;
     
     setIsSubmitting(true);
-    const supabase = createSupabaseClient();
+    const supabase = createClient();
     
     try {
       const { error } = await supabase.from('user_profiles').insert({
