@@ -1,135 +1,191 @@
 // src/components/ai/consultation-form.tsx
+'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { useForm } from 'react-hook-form';
 
-export function ConsultationForm({ onSubmit }: { onSubmit: (data: any) => void }) {
+interface ConsultationFormProps {
+  onSubmit: (data: ConsultationFormData) => void;
+  isLoading?: boolean;
+}
+
+export interface ConsultationFormData {
+  symptoms: string[];
+  patientHistory: string;
+  geneticInfo: string;
+  age: number | null;
+  gender: string;
+}
+
+export function ConsultationForm({ onSubmit, isLoading = false }: ConsultationFormProps) {
+  const [symptomInput, setSymptomInput] = useState('');
   const [symptoms, setSymptoms] = useState<string[]>([]);
-  const [currentSymptom, setCurrentSymptom] = useState('');
-  const [patientHistory, setPatientHistory] = useState('');
-  const [geneticInfo, setGeneticInfo] = useState('');
-  const [age, setAge] = useState('');
-  const [gender, setGender] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   
-  const handleAddSymptom = () => {
-    if (currentSymptom.trim()) {
-      setSymptoms([...symptoms, currentSymptom.trim()]);
-      setCurrentSymptom('');
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<ConsultationFormData>({
+    defaultValues: {
+      patientHistory: '',
+      geneticInfo: '',
+      age: null,
+      gender: '',
+    }
+  });
+
+  const addSymptom = () => {
+    if (symptomInput.trim() && !symptoms.includes(symptomInput.trim())) {
+      setSymptoms([...symptoms, symptomInput.trim()]);
+      setSymptomInput('');
     }
   };
-  
-  const handleRemoveSymptom = (index: number) => {
+
+  const removeSymptom = (index: number) => {
     setSymptoms(symptoms.filter((_, i) => i !== index));
   };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    try {
-      const data = {
-        symptoms,
-        patientHistory: patientHistory || undefined,
-        geneticInfo: geneticInfo || undefined,
-        age: age ? parseInt(age) : undefined,
-        gender: gender || undefined
-      };
-      
-      await onSubmit(data);
-    } finally {
-      setIsLoading(false);
-    }
+
+  const handleFormSubmit = (data: ConsultationFormData) => {
+    onSubmit({
+      ...data,
+      symptoms,
+    });
   };
-  
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="symptoms">Symptoms</Label>
-        <div className="flex gap-2">
-          <Input
-            id="symptoms"
-            value={currentSymptom}
-            onChange={(e) => setCurrentSymptom(e.target.value)}
-            placeholder="Enter symptom"
-          />
-          <Button type="button" onClick={handleAddSymptom} variant="secondary">
-            Add
-          </Button>
+    <form onSubmit={handleSubmit(handleFormSubmit)}>
+      <div className="space-y-5">
+        {/* Symptoms input */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Symptoms <span className="text-red-500">*</span>
+          </label>
+          <div className="flex">
+            <input
+              type="text"
+              value={symptomInput}
+              onChange={(e) => setSymptomInput(e.target.value)}
+              className="flex-1 rounded-l-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Type a symptom and press Add"
+            />
+            <button
+              type="button"
+              onClick={addSymptom}
+              className="rounded-r-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              Add
+            </button>
+          </div>
+          {symptoms.length === 0 && (
+            <p className="mt-1 text-sm text-red-500">Please add at least one symptom</p>
+          )}
         </div>
-        
+
+        {/* Symptoms tags */}
         {symptoms.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
+          <div className="flex flex-wrap gap-2">
             {symptoms.map((symptom, index) => (
-              <div key={index} className="bg-slate-100 px-3 py-1 rounded-full flex items-center gap-2">
-                <span>{symptom}</span>
+              <span
+                key={index}
+                className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-sm font-medium text-indigo-700"
+              >
+                {symptom}
                 <button
                   type="button"
-                  onClick={() => handleRemoveSymptom(index)}
-                  className="text-red-500 hover:text-red-700"
+                  onClick={() => removeSymptom(index)}
+                  className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full text-indigo-400 hover:bg-indigo-200 hover:text-indigo-700"
                 >
-                  ×
+                  <span className="sr-only">Remove</span>
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
-              </div>
+              </span>
             ))}
           </div>
         )}
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="patientHistory">Patient History (Optional)</Label>
-        <Textarea
-          id="patientHistory"
-          value={patientHistory}
-          onChange={(e) => setPatientHistory(e.target.value)}
-          placeholder="Enter relevant patient history"
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="geneticInfo">Genetic Information (Optional)</Label>
-        <Textarea
-          id="geneticInfo"
-          value={geneticInfo}
-          onChange={(e) => setGeneticInfo(e.target.value)}
-          placeholder="Enter any known genetic information"
-        />
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="age">Age (Optional)</Label>
-          <Input
+
+        {/* Patient Age */}
+        <div>
+          <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">
+            Patient Age
+          </label>
+          <input
             id="age"
             type="number"
-            value={age}
-            onChange={(e) => setAge(e.target.value)}
-            placeholder="Enter age"
+            {...register('age', { min: 0, max: 120 })}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
+          {errors.age && <p className="mt-1 text-sm text-red-500">Please enter a valid age (0-120)</p>}
         </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="gender">Gender (Optional)</Label>
+
+        {/* Gender Selection */}
+        <div>
+          <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
+            Gender
+          </label>
           <select
             id="gender"
-            value={gender}
-            onChange={(e) => setGender(e.target.value)}
-            className="w-full p-2 border rounded-md"
+            {...register('gender')}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="">Select gender</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
             <option value="other">Other</option>
+            <option value="prefer_not_to_say">Prefer not to say</option>
           </select>
         </div>
+
+        {/* Patient History */}
+        <div>
+          <label htmlFor="patientHistory" className="block text-sm font-medium text-gray-700 mb-1">
+            Patient History
+          </label>
+          <textarea
+            id="patientHistory"
+            {...register('patientHistory')}
+            rows={3}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Relevant medical history, previous conditions, etc."
+          ></textarea>
+        </div>
+
+        {/* Genetic Information */}
+        <div>
+          <label htmlFor="geneticInfo" className="block text-sm font-medium text-gray-700 mb-1">
+            Genetic Information
+          </label>
+          <textarea
+            id="geneticInfo"
+            {...register('geneticInfo')}
+            rows={3}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Family history of genetic disorders, known mutations, etc."
+          ></textarea>
+        </div>
+
+        {/* Submit Button */}
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={isLoading || symptoms.length === 0}
+            className={`rounded-md px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+              isLoading || symptoms.length === 0
+                ? 'bg-indigo-300 cursor-not-allowed'
+                : 'bg-indigo-600 hover:bg-indigo-700'
+            }`}
+          >
+            {isLoading ? (
+              <div className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+              </div>
+            ) : (
+              'Get Consultation'
+            )}
+          </button>
+        </div>
       </div>
-      
-      <Button type="submit" disabled={symptoms.length === 0 || isLoading}>
-        {isLoading ? 'Processing...' : 'Get AI Consultation'}
-      </Button>
     </form>
   );
 }
