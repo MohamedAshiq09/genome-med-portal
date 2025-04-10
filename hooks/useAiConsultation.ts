@@ -6,7 +6,7 @@ interface ConsultationParams {
   symptoms: string[];
   patientHistory?: string;
   geneticInfo?: string;
-  age?: number;
+  age?: number | null;
   gender?: string;
 }
 
@@ -20,6 +20,11 @@ export function useAiConsultation() {
     setError(null);
     
     try {
+      // Validate required fields
+      if (!params.symptoms || params.symptoms.length === 0) {
+        throw new Error('At least one symptom is required');
+      }
+      
       const response = await fetch('/api/ai/consultation', {
         method: 'POST',
         headers: {
@@ -44,10 +49,16 @@ export function useAiConsultation() {
     }
   };
   
+  const clearConsultation = () => {
+    setConsultation(null);
+    setError(null);
+  };
+  
   return {
     consultation,
     isLoading,
     error,
     getConsultation,
+    clearConsultation,
   };
 }
